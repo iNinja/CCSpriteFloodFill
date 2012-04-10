@@ -41,7 +41,7 @@
 		
 		UIImage * image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:@"http://daddytypes.com/archive/house_of_cash_coloring_0.png"]]];
 		[CCTexture2D setDefaultAlphaPixelFormat:kCCTexture2DPixelFormat_RGBA8888];
-		sprite = [CCSpriteFloodFill spriteWithImage:image];
+		sprite = [CCSpriteFloodFill spriteWithImage:image animated:YES];
 		
 		[sprite setPosition:ccp(s.width * 0.5, s.height * 0.5)];
 		[self addChild:sprite];

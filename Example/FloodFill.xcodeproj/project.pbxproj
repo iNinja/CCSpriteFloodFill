@@ -123,7 +123,6 @@
 		BC1D33F315250DC3005A0EAB /* RootViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = BC1D33F215250DC3005A0EAB /* RootViewController.m */; };
 		BC1D33F615250DC3005A0EAB /* HelloWorldLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = BC1D33F515250DC3005A0EAB /* HelloWorldLayer.m */; };
 		BC1D33FF15250E81005A0EAB /* CCTexture2DMutable.m in Sources */ = {isa = PBXBuildFile; fileRef = BC1D33FE15250E81005A0EAB /* CCTexture2DMutable.m */; };
-		BC1D340115251237005A0EAB /* Conejo.png in Resources */ = {isa = PBXBuildFile; fileRef = BC1D340015251237005A0EAB /* Conejo.png */; };
 		BC1D340315251958005A0EAB /* Btncolor.png in Resources */ = {isa = PBXBuildFile; fileRef = BC1D340215251958005A0EAB /* Btncolor.png */; };
 		BC57ECCD15261F6800857B22 /* CCSpriteFloodFill.m in Sources */ = {isa = PBXBuildFile; fileRef = BC57ECCC15261F6800857B22 /* CCSpriteFloodFill.m */; };
 /* End PBXBuildFile section */
@@ -366,7 +365,6 @@
 		BC1D33F715250DC3005A0EAB /* GameConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameConfig.h; sourceTree = "<group>"; };
 		BC1D33FD15250E81005A0EAB /* CCTexture2DMutable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCTexture2DMutable.h; sourceTree = "<group>"; };
 		BC1D33FE15250E81005A0EAB /* CCTexture2DMutable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CCTexture2DMutable.m; sourceTree = "<group>"; };
-		BC1D340015251237005A0EAB /* Conejo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Conejo.png; path = Resources/Conejo.png; sourceTree = "<group>"; };
 		BC1D340215251958005A0EAB /* Btncolor.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Btncolor.png; path = Resources/Btncolor.png; sourceTree = "<group>"; };
 		BC57ECCB15261F6800857B22 /* CCSpriteFloodFill.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCSpriteFloodFill.h; sourceTree = "<group>"; };
 		BC57ECCC15261F6800857B22 /* CCSpriteFloodFill.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CCSpriteFloodFill.m; sourceTree = "<group>"; };
@@ -448,7 +446,6 @@
 			isa = PBXGroup;
 			children = (
 				BC1D340215251958005A0EAB /* Btncolor.png */,
-				BC1D340015251237005A0EAB /* Conejo.png */,
 				BC1D329E15250DBF005A0EAB /* Default.png */,
 				BC1D32A015250DBF005A0EAB /* fps_images.png */,
 				BC1D32A215250DBF005A0EAB /* Icon-72.png */,
@@ -833,7 +830,6 @@
 				BC1D32AB15250DBF005A0EAB /* Icon.png in Resources */,
 				BC1D32AD15250DBF005A0EAB /* Icon@2x.png in Resources */,
 				BC1D32B015250DBF005A0EAB /* iTunesArtwork in Resources */,
-				BC1D340115251237005A0EAB /* Conejo.png in Resources */,
 				BC1D340315251958005A0EAB /* Btncolor.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -8,63 +8,159 @@
 
 #import "CCSpriteFloodFill.h"
 
-BOOL checkPixel(ccColor4B pixel, ccColor4B color);
-BOOL checkStack(void);
-void pushRange(ccRange range);
-ccRange popRange(void);
-
-ccRange *tos, *p1, stack[786432];
-
 BOOL checkPixel(ccColor4B pixel, ccColor4B color)
 {
 	return pixel.r == color.r && pixel.g == color.g && pixel.b == color.b;
 }
 
-BOOL checkStack(void)
+void initStack(ccRangeStack * stack, NSUInteger count)
 {
-	return p1 == tos;
+	stack->stack = malloc(sizeof(ccRange *) * count);
+	memset(stack->stack, 0, sizeof(ccRange *) * count);
+	stack->base = stack->top = stack->stack;
 }
 
-void resetStack(void)
+void freeStack(ccRangeStack * stack)
 {
-	tos = p1 = stack;
+	free(stack->stack);
+	stack->base = stack->top = stack->stack = NULL;
 }
 
-void pushRange(ccRange range)
+BOOL checkStack(ccRangeStack stack)
 {
-	p1++;
+	return stack.top == stack.base;
+}
+
+void resetStack(ccRangeStack * stack)
+{
+	stack->base = stack->top = stack->stack;
+}
+
+void pushRange(ccRangeStack * stack, ccRange range)
+{
+	stack->top++;
 	
-	assert(p1 != (tos + 786432) );
+	assert(stack->top != (stack->base + stack->count) );
 
-	*p1 = range;
+	*(stack->top) = range;
 }
 
-ccRange popRange(void)
+ccRange popRange(ccRangeStack * stack)
 {
-	assert(p1 != tos);
+	assert(stack->top != stack->base);
 
-	p1--;
-	return *(p1+1);
+	stack->top--;
+	return *(stack->top+1);
 }
 
 @implementation CCSpriteFloodFill
 
+@synthesize stepsPerFrame;
+
 + (id)spriteWithImage:(UIImage *)image
 {
-	return [[[CCSpriteFloodFill alloc] initWithImage:image] autorelease];
+	return [CCSpriteFloodFill spriteWithImage:image animated:NO];
+}
+
++ (id)spriteWithImage:(UIImage *)image animated:(BOOL)anim
+{
+	return [[[CCSpriteFloodFill alloc] initWithImage:image animated:anim] autorelease];
 }
 
 - (id)initWithImage:(UIImage *)image
 {
+	return [self initWithImage:image animated:NO];
+}
+
+- (id)initWithImage:(UIImage *)image animated:(BOOL)anim
+{
 	CCTexture2DMutable * texture = [[[CCTexture2DMutable alloc] initWithImage:image] autorelease];
 	if (self = [super initWithTexture:texture]) {
+		
+		animated = anim;
+		
 		mutableTexture = texture;
 		
-		tos = stack;
-		p1 = stack;
+		initStack(&stack, image.size.width * image.size.height);
+		
+		self.stepsPerFrame = 30;
 	}
 	return self;
 }
+
+- (void)dealloc
+{
+	freeStack(&stack);
+	
+	[super dealloc];
+}
+
+- (void)onEnter
+{
+	[super onEnter];
+	
+	if (animated) {
+		[self scheduleUpdate];
+	}
+}
+
+- (void)onExit
+{
+	[super onExit];
+	
+	if (animated) {
+		[self unscheduleUpdate];
+	}
+}
+
+- (void)update:(ccTime)dt
+{
+	if( checkStack(stack) )
+	{
+		animating = NO;
+		return;
+	}
+	
+	NSUInteger count = 0;
+	
+	while (!checkStack(stack) && count < self.stepsPerFrame) {
+		ccRange range = popRange(&stack);
+		
+		int upY = range.Y - 1;
+		int downY = range.Y +1;
+		for( int i = range.Start; i<= range.End; ++i )
+		{
+			
+			if( range.Y > 0 && !pixelsChecked[i][upY])
+			{
+				ccColor4B pixel = [mutableTexture pixelAt:ccp(i,upY)];
+				if( checkPixel(pixel, startingColor) )
+				{
+					[self linearFillFromX:i andY:upY];
+				}
+			}
+			
+			if( range.Y < [self contentSize].height-1  && !pixelsChecked[i][downY])
+			{
+				ccColor4B pixel = [mutableTexture pixelAt:ccp(i,downY)];
+				if( checkPixel(pixel, startingColor) )
+				{
+					[self linearFillFromX:i andY: downY];
+					
+				}
+			}
+		}	
+		
+		++count;
+	}
+	
+	if (count > 0) {
+		[mutableTexture apply];
+		self.dirty = YES;		
+	}
+
+}
+
 
 - (void) linearFillFromX:(NSInteger)startX andY:(NSInteger)startY
 {
@@ -129,7 +225,7 @@ ccRange popRange(void)
 	
     //add range to stack
 	ccRange range = ccr( lFillLoc, rFillLoc, startY);
-	pushRange(range);
+	pushRange(&stack, range);
 }
 
 -(void)floodFillTexture :(CGPoint) UvTxtCoord
@@ -153,7 +249,7 @@ ccRange popRange(void)
 -(void)prepareFill
 {
 	
-	resetStack();
+	resetStack(&stack);
 	
 	int mw = [self contentSize].width;
 	int mh = [self contentSize].height;
@@ -163,6 +259,10 @@ ccRange popRange(void)
 }
 
 - (void)fillFromPoint:(CGPoint)pos withColor:(ccColor4B)col {
+	
+	if (animating) {
+		return;
+	}
 	
 	CGPoint WolrdLoc = [self convertToNodeSpace:pos];
 	
@@ -195,7 +295,7 @@ ccRange popRange(void)
 			pixelY = (int)((float)ny/(float)self.scaleY);
 		}
 		
-		if( checkStack() )
+		if( checkStack(stack) )
 		{
 			targetColor = col;
 			if( targetColor.r <= 15 && targetColor.g <= 15 && targetColor.b <= 15 )
@@ -207,39 +307,45 @@ ccRange popRange(void)
 		}
 	}
 	
-	while( ! checkStack() )
-	{
-		ccRange range = popRange();
-		
-		int upY = range.Y - 1;
-		int downY = range.Y +1;
-		for( int i = range.Start; i<= range.End; ++i )
+	if (animated) {
+		animating = YES;
+	}
+	else {
+		while( ! checkStack(stack) )
 		{
+			ccRange range = popRange(&stack);
 			
-			if( range.Y > 0 && !pixelsChecked[i][upY])
+			int upY = range.Y - 1;
+			int downY = range.Y +1;
+			for( int i = range.Start; i<= range.End; ++i )
 			{
-				ccColor4B pixel = [mutableTexture pixelAt:ccp(i,upY)];
-				if( checkPixel(pixel, startingColor) )
+				
+				if( range.Y > 0 && !pixelsChecked[i][upY])
 				{
-					[self linearFillFromX:i andY:upY];
+					ccColor4B pixel = [mutableTexture pixelAt:ccp(i,upY)];
+					if( checkPixel(pixel, startingColor) )
+					{
+						[self linearFillFromX:i andY:upY];
+					}
 				}
-			}
-			
-			if( range.Y < [self contentSize].height-1  && !pixelsChecked[i][downY])
-			{
-				ccColor4B pixel = [mutableTexture pixelAt:ccp(i,downY)];
-				if( checkPixel(pixel, startingColor) )
+				
+				if( range.Y < [self contentSize].height-1  && !pixelsChecked[i][downY])
 				{
-					[self linearFillFromX:i andY: downY];
-					
+					ccColor4B pixel = [mutableTexture pixelAt:ccp(i,downY)];
+					if( checkPixel(pixel, startingColor) )
+					{
+						[self linearFillFromX:i andY: downY];
+						
+					}
 				}
 			}
 		}
+		
+		[mutableTexture apply];
+		self.dirty = YES;
+		
 	}
-	
-	[mutableTexture apply];
-	self.dirty = YES;
-	
+		
 }
 
 
